@@ -55,10 +55,10 @@ def save_decode_result_para(decode_pred, data, path):
         pred_i = pred_i[:len(src_i)]
         pred_i = pred_i[1:-1]
         for id, ele in enumerate(pred_i):
-            if vocab[ele] not in ["[UNK]", "[SEP]", "[CLS]", "[PAD]"]:
-                line += vocab[ele]
-            else:
+            if vocab[ele] in ["[UNK]", "[SEP]", "[CLS]", "[PAD]"] or src['src_text'][id] in set('—‘’“”qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHMNBVGFCDXSAZ'):
                 line += src['src_text'][id]
+            else:
+                line += vocab[ele]
         f.write("{}\t{}\n".format(src['id'], line))
         if src['src_text'] != src['trg_text']:
             targ_p += 1
