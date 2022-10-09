@@ -14,7 +14,6 @@ class Decoder:
         self.model = BERT_Model(config, self.test_loader.dataset)
         self.model.to(self.device)
         self.config = config
-        self.top_num = config.top_num
 
     def __forward_prop(self, dataloader):
         collected_outputs = []
@@ -64,6 +63,6 @@ if __name__ == "__main__":
     parser.add_argument("--max_seq_len", default=128, type=int)
     parser.add_argument("--batch_size", default=32, type=int)
     parser.add_argument("--label_ignore_id", default=0, type=int)
-    parser.add_argument("--top_num", default=1, type=int)
+    parser.add_argument("--mode", default=eval, type=str)
     args = parser.parse_args()
     main(args)
