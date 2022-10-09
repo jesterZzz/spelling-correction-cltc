@@ -5,3 +5,5 @@ torch==1.11.0
 tokenizers==0.12.1
 tqdm==4.64.0
 transformers==4.19.2
+eventlet==0.33.1
+pyhanlp==0.1.84
