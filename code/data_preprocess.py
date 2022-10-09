@@ -9,7 +9,6 @@ import random
 
 
 def construct_parallel_data_para(src_path, trg_path):
-
     parallel_data = []
 
     with open(src_path, "r") as f:
@@ -40,13 +39,12 @@ def construct_parallel_data_para(src_path, trg_path):
 
 
 def encode_parallel_data(config, parallel_data, normalizer, tokenizer, max_len, writer):
-
     count = 0
     for item in tqdm(parallel_data):
         data_sample = {}
         if config.normalize == "True":
-            src_norm = normalizer.normalize_str(item[1])[:max_len-2]
-            trg_norm = normalizer.normalize_str(item[2])[:max_len-2]
+            src_norm = normalizer.normalize_str(item[1])[:max_len - 2]
+            trg_norm = normalizer.normalize_str(item[2])[:max_len - 2]
         else:
             src_norm = item[1][:max_len - 2]
             trg_norm = item[2][:max_len - 2]
@@ -60,12 +58,15 @@ def encode_parallel_data(config, parallel_data, normalizer, tokenizer, max_len, 
         trg_token_list.insert(0, '[CLS]')
         trg_token_list.append('[SEP]')
         data_sample['id'] = item[0]
+        data_sample['src_text'] = src_norm
+        data_sample['trg_text'] = trg_norm
         data_sample['input_ids'] = tokenizer.convert_tokens_to_ids(src_token_list)
         data_sample['token_type_ids'] = [0 for i in range(len(src_token_list))]
         data_sample['attention_mask'] = [1 for i in range(len(src_token_list))]
         data_sample['trg_ids'] = tokenizer.convert_tokens_to_ids(trg_token_list)
         data_sample['sequence_cls'] = [0] if src_token_list == trg_token_list else [1]
-        data_sample['token_cls'] = [0 if c == data_sample['trg_ids'][k] else 1 for k, c in enumerate(data_sample['input_ids'])]
+        data_sample['token_cls'] = [0 if c == data_sample['trg_ids'][k] else 1 for k, c in
+                                    enumerate(data_sample['input_ids'])]
 
         writer.write(data_sample)
         count += 1
@@ -73,7 +74,6 @@ def encode_parallel_data(config, parallel_data, normalizer, tokenizer, max_len, 
 
 
 def construct_parallel_data_lbl(src_path, trg_path):
-
     parallel_data = []
 
     with open(src_path, "r") as f:
@@ -98,7 +98,7 @@ def construct_parallel_data_lbl(src_path, trg_path):
             c_no_error_sent += 1
         else:
             for i in range(1, len(trg_items), 2):
-                trg_sent[int(trg_items[i])-1] = trg_items[i+1]
+                trg_sent[int(trg_items[i]) - 1] = trg_items[i + 1]
         trg_sent = "".join(trg_sent)
         parallel_data.append((id, src_sent, trg_sent))
 
@@ -108,9 +108,8 @@ def construct_parallel_data_lbl(src_path, trg_path):
 
 
 def encode_predict_data(config, src_path, normalizer, tokenizer, max_len, writer):
-
     count = 0
-    
+
     with open(src_path, "r") as f:
         src_lines = f.readlines()
     if config.target_dir:
@@ -133,9 +132,9 @@ def encode_predict_data(config, src_path, normalizer, tokenizer, max_len, writer
             trg_sent = ''
 
         if config.normalize == "True":
-            src_norm = normalizer.normalize_str(src_sent)[:max_len-2]
+            src_norm = normalizer.normalize_str(src_sent)[:max_len - 2]
         else:
-            src_norm = normalizer.normalize_str(src_sent)[:max_len-2]
+            src_norm = normalizer.normalize_str(src_sent)[:max_len - 2]
 
         src_token_list = list(src_norm)
         src_token_list.insert(0, '[CLS]')
@@ -149,10 +148,9 @@ def encode_predict_data(config, src_path, normalizer, tokenizer, max_len, writer
             data_sample['trg_text'] = trg_sent
 
         writer.write(data_sample)
-        open(config.save_path.replace("jsonl", "txt"), 'w').write(str(count))
+        # open(config.save_path.replace("jsonl", "txt"), 'w').write(str(count))
         count += 1
     open(config.save_path.replace("jsonl", "txt"), 'w').write(str(count))
-
 
 
 def main(config):
