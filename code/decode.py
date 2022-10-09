@@ -42,8 +42,12 @@ class Decoder:
                         outputs[sk] += stc
         for batch_pro in outputs:
             res += torch.argmax(batch_pro, dim=-1).tolist()
-        save_decode_result_para(res, self.test_loader.dataset.data, self.config.save_path)
-
+        if self.config.mode == 'eval':
+            save_decode_result_para(res, self.test_loader.dataset.data, self.config.save_path)
+        elif self.config.mode == 'check':
+            save_decode_result_test(res, self.test_loader.dataset.data, self.config.save_path)
+        elif self.config.mode == 'test':
+            save_decode_result_lbl(res, self.test_loader.dataset.data, self.config.save_path)
 
 
 def main(config):
