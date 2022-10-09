@@ -23,6 +23,7 @@ CUDA_VISIBLE_DEVICES=5 python3 decode.py \
 	--test_path $DATA_DIR"/test_"$TAG".jsonl" \
 	--model_path $MODEL_PATH \
 	--save_path $SAVE_PATH"/"$TAG".eval" \
-	--batch_size 32;
+	--batch_size 32 \
+	--mode test;
 
 
