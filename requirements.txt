@@ -1,9 +1,8 @@
-jsonlines==3.0.0
-Levenshtein==0.18.1
 numpy==1.22.3
+transformers==4.19.2
 torch==1.11.0
 tokenizers==0.12.1
-tqdm==4.64.0
-transformers==4.19.2
-eventlet==0.33.1
 pyhanlp==0.1.84
+tqdm==4.64.0
+jsonlines==3.0.0
+Levenshtein==0.18.1
