@@ -4,8 +4,8 @@ import jsonlines
 from itertools import accumulate
 from tqdm import tqdm
 import bisect
-import opencc
 import argparse
+import eventlet
 
 
 class PersonalData():
@@ -13,7 +13,7 @@ class PersonalData():
         self.vocab = [_.strip() for _ in open('./all_char.txt', 'r', encoding='utf-8').readlines()]
         self.weighted_conf_pron = json.load(open(r'./final_char_py_conf.json', 'r', encoding='utf-8'))
         self.weighted_conf_shape = json.load(open(r'./final_char_zx_conf.json', 'r', encoding='utf-8'))
-        self.word_conf_pron = json.load(open(r'./word_py_conf_filled.json', 'r', encoding='utf-8'))
+        self.word_conf_pron = json.load(open(r'./word_py_conf.json', 'r', encoding='utf-8'))
         self.word_same_means = {}
         tmp = {}
         for line in  open(r'dict_synonym.txt', 'r', encoding='utf-8').readlines():
@@ -26,7 +26,7 @@ class PersonalData():
             if not tmp[word]:
                 self.word_same_means.pop(word)
         self.config = config
-        print('char_level_all_finish')
+        print('confusion_loaded_finish')
 
     def is_keep(self, word):
         for char in word:
@@ -48,6 +48,11 @@ class PersonalData():
                 loc += 1
                 tgt_list.append(word)
                 state_list.append(0)
+                continue
+            elif nature in ["w"]:
+                loc += 1
+                tgt_list.append(word)
+                state_list.append(1)
                 continue
             part = stc_list[loc][0]
             if self.is_keep(part):
@@ -84,7 +89,7 @@ class PersonalData():
                 tgt_list.append(word)
                 state_list.append(1)
 
-        if not random.randint(0, self.config.move_ratio):
+        if not random.randint(0, self.config.move_ratio * self.config.open_change):
             idx_list = [_ for _ in range(len(state_list)) if state_list[_] == 0]
             idx_idx = [_ for _ in range(len(idx_list))]
             if len(idx_list) < 2:
@@ -116,13 +121,12 @@ class PersonalData():
                 return part * 2
             elif mode == 2:
                 return ''
-            elif not random.randint(0, 3):
-                return random.choice(self.word_same_means.get(part, [part]))
-            else:
+            elif random.randint(0, 3) and len(set(part)) > 1:
                 tmp = part
                 while tmp == part:
                     tmp = ''.join(random.sample(part, len(part)))
                 return tmp
+            return random.choice(self.word_same_means.get(part, [part]))
         elif len(part) > 1:
             idx = random.randint(0, len(part) - 1)
             if mode == 1:
@@ -166,6 +170,7 @@ class WeightedRandomGenerator(object):
 
 
 def main(config):
+    eventlet.monkey_patch()
     random.seed(config.random_seed)
     used_stc = set()
     count = 1
@@ -176,25 +181,26 @@ def main(config):
             for stc_part in tqdm(reader):
                 used_stc.add(str(stc_part))
         for stc_part in tqdm(used_stc):
-            stc_part = eval(stc_part)
-            num = 0
-            while num < 2:
-                stc, changed_stc = pd.data_handle(stc_part)
-                if stc != changed_stc:
-                    num = 3
-                else:
-                    num += 1
-            src_writer.write("({}-s27-{})\t{}\n".format(config.tag, count, changed_stc))
-            trg_writer.write("({}-s27-{})\t{}\n".format(config.tag, count, stc))
-            count += 1
+            with eventlet.Timeout(2, False):
+                stc_part = eval(stc_part)
+                num = 0
+                while num < 2:
+                    stc, changed_stc = pd.data_handle(stc_part)
+                    if stc != changed_stc:
+                        num = 3
+                    else:
+                        num += 1
+                src_writer.write("({}-s{}-{})\t{}\n".format(config.tag, config.random_seed, count, changed_stc))
+                trg_writer.write("({}-s{}-{})\t{}\n".format(config.tag, config.random_seed, count, stc))
+                count += 1
+            continue
 
 
 if __name__ == '__main__':
-    # cc = opencc.OpenCC('t2s')
     parser = argparse.ArgumentParser()
-    parser.add_argument("--open_change", default=1, type=int)
-    parser.add_argument("--tag", default='pretrain_data', type=str)
-    parser.add_argument("--input", default='pd.splitstc.jsonl', type=str)
+    parser.add_argument("--open_change", default=0, type=int)
+    parser.add_argument("--tag", default='train', type=str)
+    parser.add_argument("--input", default='train.splitstc.jsonl', type=str)
     parser.add_argument("--char_word_ratio", default=1, type=int)
     parser.add_argument("--py_wb_ratio", default=7, type=int)
     parser.add_argument("--move_ratio", default=5, type=int)
