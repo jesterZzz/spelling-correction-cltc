@@ -4,5 +4,5 @@
 
 训练，预测相关请见 code 目录
 
-model目录内可防止bert，macbert等预训练模性。
+model目录内可放置bert，roberta等预训练模性。
 
