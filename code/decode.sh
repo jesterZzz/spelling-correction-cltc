@@ -13,7 +13,7 @@ python3 ./data_preprocess.py \
 --data_mode "lbl" \
 --normalize "True"
 
-MODEL_PATH="('../model/4600w_ratio1/roberta-s-epoch-1.pt', '../model/4600w_ratio1/roberta-r1-epoch-1.pt')"
+MODEL_PATH="(''，'')"
 SAVE_PATH=../model/try
 
 mkdir -p $SAVE_PATH
@@ -23,8 +23,6 @@ CUDA_VISIBLE_DEVICES=5 python3 decode.py \
 	--test_path $DATA_DIR"/test_"$TAG".jsonl" \
 	--model_path $MODEL_PATH \
 	--save_path $SAVE_PATH"/"$TAG".eval" \
-	--batch_size 32 \
-	--top_num 10 \
-	--action_mode "test";
+	--batch_size 32;
 
 
